@@ -3,7 +3,7 @@ package me.mx1700.koalin
 import java.lang.Exception
 
 typealias Next = suspend () -> Unit
-typealias Middleware = suspend (Context, Next) -> Unit
+typealias Middleware = suspend (Context) -> Unit
 typealias OnException = suspend Context.(Exception) -> Unit
 
 class Server {
@@ -16,7 +16,7 @@ class Server {
     /**
      * 使用中间件
      */
-    fun use(action: suspend Context.(Next) -> Unit) {
+    fun use(action: suspend Context.() -> Unit) {
         middlewareList.add(action)
     }
 
@@ -36,9 +36,10 @@ class Server {
         if (index >= middlewareList.count()) return;
         val middleware = middlewareList[index]
         try {
-            middleware(ctx, {
+            ctx.next =  {
                 next(index + 1, ctx)
-            })
+            }
+            middleware(ctx)
         } catch (err: Exception) {
             if (onExceptionAction != null) {
                 onExceptionAction?.invoke(ctx, err)
