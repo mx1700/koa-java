@@ -60,7 +60,7 @@ class Response(private val exchange: HttpServerExchange) : Response {
     override val cookies = Cookies(exchange.responseCookies)
 
     override fun get(head: String): String? = exchange.responseHeaders.getFirst(head)
-    operator fun get(name: HttpString): String? = exchange.responseHeaders[name].first
+    operator fun get(name: HttpString): String? = exchange.responseHeaders[name]?.firstOrNull()
 
     override fun set(head: String, value: String?) {
         if (value == null) {

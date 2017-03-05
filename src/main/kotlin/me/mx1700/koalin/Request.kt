@@ -15,10 +15,20 @@ interface Request {
     val url: String
 
     /**
+     * 完整请求地址
+     */
+    val href: String
+
+    /**
      * 请求源
-     * ${this.protocol}://${this.host}
+     * ${this.String}://${this.host}
      */
     val origin: String
+
+    /**
+     * scheme
+     */
+    val scheme: String
 
     /**
      * 请求 method
@@ -74,12 +84,6 @@ interface Request {
     val idempotent: Boolean
 
     /**
-     * socket 链接
-     */
-    val socket: String
-    get() = TODO()
-
-    /**
      * 字符集
      */
     val charset: String?
@@ -113,8 +117,6 @@ interface Request {
      */
     val ips: Iterable<String>
 
-    val subdomains: Iterable<String>
-    get() = TODO()
 
 //    /**
 //     * 检查是否是支持的类型

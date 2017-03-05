@@ -13,13 +13,19 @@ class Request(private val exchange: HttpServerExchange) : Request {
     override val url
         get() = exchange.requestURL!!
 
+    override val href: String
+        get() = "$url$queryString" //To change initializer of created properties use File | Settings | File Templates.
+
     override val origin: String
-        get() = "${this.protocol}://${this.host}"
+        get() = "${this.scheme}://${this.host}"
+
+    override val scheme: String
+        get() = exchange.requestScheme
 
     override val method
         get() = exchange.requestMethod.toString()
 
-    override val path
+    override val path: String
         get() = exchange.requestPath
 
     override val query
@@ -27,13 +33,13 @@ class Request(private val exchange: HttpServerExchange) : Request {
 
     override val cookies = Cookies(exchange.requestCookies)
 
-    override val queryString
+    override val queryString: String
         get() = exchange.queryString
 
-    override val host
+    override val host: String
         get() = exchange.hostAndPort
 
-    override val hostName
+    override val hostName: String
         get() = exchange.hostName
 
     override val fresh: Boolean
@@ -45,7 +51,7 @@ class Request(private val exchange: HttpServerExchange) : Request {
     override val idempotent: Boolean
         get() = this.method in listOf("GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE")
 
-    override val charset
+    override val charset: String?
         get() = exchange.requestCharset
 
     override val length
@@ -55,17 +61,18 @@ class Request(private val exchange: HttpServerExchange) : Request {
         get() = exchange.protocol.toString()
 
     override val secure
-        get() = protocol == "https"
+        get() = scheme == "https"
 
     override val ips: Iterable<String>
         get() = TODO("not implemented")
 
     override val type: String?
-        get() = TODO("not implemented") 
+        get() = this[Headers.CONTENT_TYPE]
 
     override fun get(head: String): String {
         return exchange.requestHeaders.getFirst(head)
     }
+    operator fun get(name: HttpString): String? = exchange.requestHeaders[name]?.firstOrNull()
 
     class RequestHeaders(private val map: HeaderMap) : me.mx1700.koalin.Headers {
         override fun get(name: String): String {
