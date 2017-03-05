@@ -2,7 +2,7 @@ group 'me.mx1700'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.0-rc-91'
+    ext.kotlin_version = '1.1.0'
 
     repositories {
         maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
@@ -26,9 +26,19 @@ repositories {
 }
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'org.slf4j:slf4j-api:1.7.24'
+    compile 'org.slf4j:slf4j-simple:1.7.24'
+
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile "javax.servlet:javax.servlet-api:3.1.0"
-    compile "org.eclipse.jetty.aggregate:jetty-all:9.4.2.v20170220"
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.12'
+
+    compile "io.undertow:undertow-core:1.4.11.Final"
+
     testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
 }
