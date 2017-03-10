@@ -14,7 +14,7 @@ class Request(private val exchange: HttpServerExchange) : Request {
         get() = exchange.requestURL!!
 
     override val href: String
-        get() = "$url$queryString" //To change initializer of created properties use File | Settings | File Templates.
+        get() = "$url$queryString"
 
     override val origin: String
         get() = "${this.scheme}://${this.host}"
