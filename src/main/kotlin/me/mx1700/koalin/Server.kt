@@ -86,7 +86,9 @@ class Server {
         val res = ctx.response.raw
         val body = ctx.response.body
 
-        res.characterEncoding = "UTF-8";
-        res.writer.print(body)
+        if (body != null) {
+            res.characterEncoding = "UTF-8";
+            res.writer.print(body)
+        }
     }
 }
