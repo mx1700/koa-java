@@ -1,39 +1,62 @@
 package me.mx1700.koalin
 
 import java.lang.Exception
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
-typealias Next = suspend () -> Unit
-typealias Middleware = suspend (Context) -> Unit
-typealias OnException = suspend Context.(Exception) -> Unit
+typealias Next = () -> Unit
+typealias Middleware = (Context) -> Unit
+typealias OnException = Context.(Exception) -> Unit
 
 class Server {
 
-    val callback: suspend (Request, Response) -> Unit = { req, res -> this.run(req, res) }
+    /**
+     * callback 的引用
+     */
+    val callback: (HttpServletRequest, HttpServletResponse) -> Unit = this::callback
 
+    /**
+     * 中间件列表
+     */
     private val middlewareList = arrayListOf<Middleware>()
+
+    /**
+     * 异常事件
+     */
     private var onExceptionAction : OnException? = null
 
     /**
-     * 使用中间件
+     * 添加中间件
      */
-    fun use(action: suspend Context.() -> Unit) {
-        middlewareList.add(action)
+    fun use(middleware: Context.() -> Unit) {
+        middlewareList.add(middleware)
+    }
+
+    /**
+     * 使用并配置中间件
+     */
+    fun <T: Middleware> use(middleware: T, config: T.() -> Unit) {
+        config(middleware)
+        middlewareList.add(middleware)
     }
 
     /**
      * 开始执行中间件
      */
-    suspend private fun run(request: Request,
-                    response: Response) {
-        val ctx = Context(request, response)
+    private fun callback(request: HttpServletRequest,
+                    response: HttpServletResponse) {
+        val ctx = Context(this, request, response)
         next(0, ctx)
+        respond(ctx)
     }
 
     /**
      * 执行下一个中间件
      */
-    suspend private fun next(index: Int, ctx: Context) {
-        if (index >= middlewareList.count()) return;
+    private fun next(index: Int, ctx: Context) {
+        if (index == middlewareList.count()) {
+            return
+        }
         val middleware = middlewareList[index]
         try {
             ctx.next =  {
@@ -52,7 +75,18 @@ class Server {
     /**
      * 异常事件
      */
-    fun onException(action: suspend Context.(Exception) -> Unit) {
+    fun onException(action: OnException) {
         onExceptionAction = action
+    }
+
+    /**
+     * 输出 response
+     */
+    private fun respond(ctx: Context) {
+        val res = ctx.response.raw
+        val body = ctx.response.body
+
+        res.characterEncoding = "UTF-8";
+        res.writer.print(body)
     }
 }
