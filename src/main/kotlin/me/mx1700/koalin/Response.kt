@@ -9,12 +9,6 @@ class Response(private val ctx: Context) {
 
     val res = ctx.res
 
-    init {
-        //res.addCookie()
-        //set(name, cookie)
-        //remove(name)
-    }
-
     /**
      * 原生对象
      */
@@ -58,7 +52,7 @@ class Response(private val ctx: Context) {
     }
 
     /**
-     * et Content-Disposition header to "attachment" with optional `filename`.
+     * set Content-Disposition header to "attachment" with optional `filename`.
      */
     fun attachment(fileName: String): Unit {
         this.type = fileName
@@ -66,7 +60,7 @@ class Response(private val ctx: Context) {
     }
 
     /**
-     * 相应类型
+     * 响应类型
      */
     var type: String?
         get() = res.contentType
