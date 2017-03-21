@@ -31,7 +31,6 @@ class Request(private val ctx: Context) {
 
     /**
      * 请求源
-     * ${this.scheme}://${this.host}
      */
     val origin: String by lazy {
         "${req.scheme}://${req.remoteHost}"
@@ -53,7 +52,7 @@ class Request(private val ctx: Context) {
     val path: String = req.pathInfo
 
     /**
-     * 解析后的 query
+     * query 字典
      */
     val query: Map<String, String> by lazy {
         req.parameterNames.asSequence().map { it to req.getParameter(it) }.toMap()
@@ -74,7 +73,7 @@ class Request(private val ctx: Context) {
 
     /**
      * "head" 头 带端口
-     * 支持 X-Forwarded-Host 当 proxy 打开
+     * TODO:支持 X-Forwarded-Host 当 proxy 打开
      */
     val host: String by lazy {
         "${this.hostname}:${req.serverPort}"
@@ -82,7 +81,7 @@ class Request(private val ctx: Context) {
 
     /**
      * "head" 头
-     * 支持 X-Forwarded-Host 当 proxy 打开
+     * TODO:支持 X-Forwarded-Host 当 proxy 打开
      */
     val hostname: String = req.remoteHost
 
@@ -140,11 +139,6 @@ class Request(private val ctx: Context) {
         get() = !fresh
 
     /**
-     * 检查是否是旧请求
-     */
-//    val stale: Boolean
-
-    /**
      * 请求是否幂等
      */
     val idempotent: Boolean by lazy {
@@ -163,7 +157,7 @@ class Request(private val ctx: Context) {
 
     /**
      * 协议
-     * 支持 X-Forwarded-Proto
+     * TODO:支持 X-Forwarded-Proto
      */
     val protocol: String = req.protocol
 
@@ -186,23 +180,23 @@ class Request(private val ctx: Context) {
      */
 //    val ips: Iterable<String>
 
-        /**
-         * Return subdomains as an array.
-         *
-         * Subdomains are the dot-separated parts of the host before the main domain
-         * of the app. By default, the domain of the app is assumed to be the last two
-         * parts of the host. This can be changed by setting `app.subdomainOffset`.
-         *
-         * For example, if the domain is "tobi.ferrets.example.com":
-         * If `app.subdomainOffset` is not set, this.subdomains is
-         * `["ferrets", "tobi"]`.
-         * If `app.subdomainOffset` is 3, this.subdomains is `["tobi"]`.
-         *
-         * @return {Array}
-         * @api public
-         * TODO: 暂时不支持
-         */
-//        get subdomains()
+    /**
+     * Return subdomains as an array.
+     *
+     * Subdomains are the dot-separated parts of the host before the main domain
+     * of the app. By default, the domain of the app is assumed to be the last two
+     * parts of the host. This can be changed by setting `app.subdomainOffset`.
+     *
+     * For example, if the domain is "tobi.ferrets.example.com":
+     * If `app.subdomainOffset` is not set, this.subdomains is
+     * `["ferrets", "tobi"]`.
+     * If `app.subdomainOffset` is 3, this.subdomains is `["tobi"]`.
+     *
+     * @return {Array}
+     * @api public
+     * TODO: 暂时不支持
+     */
+//   get subdomains()
 
 
     /**
