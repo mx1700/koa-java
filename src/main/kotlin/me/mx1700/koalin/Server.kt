@@ -11,6 +11,11 @@ typealias OnException = Context.(Exception) -> Unit
 class Server {
 
     /**
+     * 是否是通过代理访问，当设置为 true 的时候，会通过代理头获取 ip 和 host
+     */
+    var proxy: Boolean = false
+
+    /**
      * callback 的引用
      */
     val callback: (HttpServletRequest, HttpServletResponse) -> Unit = this::callback

@@ -20,14 +20,18 @@ class Request(private val ctx: Context) {
 
     /**
      * 请求 url
-     * TODO: 有问题，应该返回全的 url
      */
-    val url: String = req.requestURI
+    val url: String = req.requestURL.toString()
 
     /**
      * 完整请求地址
      */
-    val href: String = req.requestURI
+    val href: String by lazy {
+        if (queryString.isNullOrEmpty())
+            url
+        else
+            "$url?$queryString"
+    }
 
     /**
      * 请求源
@@ -73,17 +77,24 @@ class Request(private val ctx: Context) {
 
     /**
      * "head" 头 带端口
-     * TODO:支持 X-Forwarded-Host 当 proxy 打开
      */
     val host: String by lazy {
-        "${this.hostname}:${req.serverPort}"
+        if (ctx.app.proxy && this["X-Forwarded-Host"] != null)
+            this["X-Forwarded-Host"]!!.split("\\s*,\\s*".toRegex())[0]
+        else
+            "${this.hostname}:${req.serverPort}"
     }
 
     /**
      * "head" 头
-     * TODO:支持 X-Forwarded-Host 当 proxy 打开
      */
-    val hostname: String = req.remoteHost
+    val hostname: String by lazy {
+        if (ctx.app.proxy && this["X-Forwarded-Host"] != null) {
+            this.host.split(':')[0]
+        } else {
+            req.remoteHost
+        }
+    }
 
     /**
      * 检查是否是新的请求
@@ -159,12 +170,22 @@ class Request(private val ctx: Context) {
      * 协议
      * TODO:支持 X-Forwarded-Proto
      */
-    val protocol: String = req.protocol
+    val protocol: String by lazy {
+        when {
+            req.isSecure -> "https"
+            !ctx.app.proxy -> "http"
+            this["X-Forwarded-Proto"] != null ->
+                this["X-Forwarded-Proto"]!!.split("\\s*,\\s*".toRegex())[0]
+            else -> "http"
+        }
+    }
 
     /**
      * 是否是安全连接
      */
-    val secure: Boolean = req.isSecure
+    val secure: Boolean by lazy {
+        protocol == "https"
+    }
 
     /**
      * When `app.proxy` is `true`, parse
@@ -176,27 +197,13 @@ class Request(private val ctx: Context) {
      *
      * @return {Array}
      * @api public
-     * TODO:暂时不支持
      */
-//    val ips: Iterable<String>
-
-    /**
-     * Return subdomains as an array.
-     *
-     * Subdomains are the dot-separated parts of the host before the main domain
-     * of the app. By default, the domain of the app is assumed to be the last two
-     * parts of the host. This can be changed by setting `app.subdomainOffset`.
-     *
-     * For example, if the domain is "tobi.ferrets.example.com":
-     * If `app.subdomainOffset` is not set, this.subdomains is
-     * `["ferrets", "tobi"]`.
-     * If `app.subdomainOffset` is 3, this.subdomains is `["tobi"]`.
-     *
-     * @return {Array}
-     * @api public
-     * TODO: 暂时不支持
-     */
-//   get subdomains()
+    val ips: Iterable<String> by lazy {
+        if (ctx.app.proxy && this["X-Forwarded-For"] != null)
+            this["X-Forwarded-For"]!!.split("\\s*,\\s*".toRegex())
+        else
+            emptyList()
+    }
 
 
     /**
@@ -204,14 +211,9 @@ class Request(private val ctx: Context) {
      * TODO: 暂未实现
      */
 //    fun accepts(vararg accepts: String): Boolean
-
-//    val acceptsEncodings: String    //很复杂
-//    val acceptsCharsets: String     //很复杂
-//    val acceptsLanguages: String    //很复杂
-
-//    /**
-//     *
-//     */
+//    val acceptsEncodings: String
+//    val acceptsCharsets: String
+//    val acceptsLanguages: String
 //    fun isType(vararg types: String) : Boolean
 
     /**
