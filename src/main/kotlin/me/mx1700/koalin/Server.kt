@@ -1,5 +1,6 @@
 package me.mx1700.koalin
 
+import org.slf4j.LoggerFactory
 import java.lang.Exception
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -8,12 +9,17 @@ typealias Next = () -> Unit
 typealias Middleware = (Context) -> Unit
 typealias OnException = Context.(Exception) -> Unit
 
-class Server {
+class Server(
+        /**
+         * 是否是通过代理访问，当设置为 true 的时候，会通过代理头获取 ip 和 host
+         */
+        val proxy: Boolean = false) {
 
+    val name = "Koalin"
     /**
-     * 是否是通过代理访问，当设置为 true 的时候，会通过代理头获取 ip 和 host
+     * 日志类
      */
-    var proxy: Boolean = false
+    val logger = LoggerFactory.getLogger(name)!!
 
     /**
      * callback 的引用
@@ -28,7 +34,17 @@ class Server {
     /**
      * 异常事件
      */
-    private var onExceptionAction : OnException? = null
+    private var onExceptionAction : OnException? = { e ->
+        logger.error("request exception", e)
+        response.status = 500
+        res.characterEncoding = "UTF-8"
+        e.printStackTrace(res.writer)
+        response.body = null
+    }
+
+    private val errorHandler: OnException = { e ->
+        logger.error("request exception", e)
+    }
 
     /**
      * 添加中间件
@@ -50,6 +66,7 @@ class Server {
      */
     private fun callback(request: HttpServletRequest,
                     response: HttpServletResponse) {
+        logger.info("run middleware list")
         val ctx = Context(this, request, response)
         next(0, ctx)
         respond(ctx)
