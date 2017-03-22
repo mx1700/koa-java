@@ -109,17 +109,20 @@ class Server(
     private fun respond(ctx: Context) {
         val res = ctx.response.raw
         val body = ctx.response.body ?: return
+        if (ctx.res.isCommitted) return
+
         when(body) {
             is CharSequence -> res.writer.print(body)
             is ByteArray -> res.outputStream.write(body)
             is InputStream -> {
                 val b = ByteArray(512)
-                while (true) {
-                    val n = body.read(b)
-                    if (n == -1) break
-                    res.outputStream.write(b, 0, n)
+                body.use {
+                    while (true) {
+                        val n = body.read(b)
+                        if (n == -1) break
+                        res.outputStream.write(b, 0, n)
+                    }
                 }
-                body.close()
             }
             else -> throw IllegalArgumentException("不支持的 body 类型: " + body.javaClass.name)
         }
