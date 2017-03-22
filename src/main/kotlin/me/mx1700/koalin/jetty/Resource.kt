@@ -10,6 +10,9 @@ import org.eclipse.jetty.util.resource.ResourceFactory
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * 资源文件处理
+ */
 class Resource : Middleware {
     val _mimeTypes = MimeTypes()
     val _resourceService = object: ResourceService() {

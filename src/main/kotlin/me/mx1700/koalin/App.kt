@@ -31,7 +31,10 @@ ${request.href}
     }
 
     app.use {
-        response.body += " next!"
+        val body = response.body
+        if (body is String) {
+            response.body = body + " next!"
+        }
     }
 
     app.listen(9000)

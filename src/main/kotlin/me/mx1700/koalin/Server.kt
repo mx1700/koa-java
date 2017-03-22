@@ -13,7 +13,8 @@ class Server(
         /**
          * 是否是通过代理访问，当设置为 true 的时候，会通过代理头获取 ip 和 host
          */
-        val proxy: Boolean = false) {
+        val proxy: Boolean = false
+) {
 
     val name = "Koalin"
     /**
@@ -34,7 +35,7 @@ class Server(
     /**
      * 异常事件
      */
-    private var onExceptionAction : OnException? = { e ->
+    private var onExceptionAction: OnException? = { e ->
         logger.error("request exception", e)
         response.status = 500
         res.characterEncoding = "UTF-8"
@@ -56,7 +57,7 @@ class Server(
     /**
      * 使用并配置中间件
      */
-    fun <T: Middleware> use(middleware: T, config: T.() -> Unit) {
+    fun <T : Middleware> use(middleware: T, config: T.() -> Unit) {
         config(middleware)
         middlewareList.add(middleware)
     }
@@ -65,7 +66,7 @@ class Server(
      * 开始执行中间件
      */
     private fun callback(request: HttpServletRequest,
-                    response: HttpServletResponse) {
+                         response: HttpServletResponse) {
         logger.info("run middleware list")
         val ctx = Context(this, request, response)
         next(0, ctx)
@@ -81,7 +82,7 @@ class Server(
         }
         val middleware = middlewareList[index]
         try {
-            ctx.next =  {
+            ctx.next = {
                 next(index + 1, ctx)
             }
             middleware(ctx)
@@ -106,11 +107,16 @@ class Server(
      */
     private fun respond(ctx: Context) {
         val res = ctx.response.raw
-        val body = ctx.response.body
+        val body = ctx.response.body ?: return
 
-        if (body != null) {
-            res.characterEncoding = "UTF-8";
+        if (body is String) {
+            if (res.characterEncoding == null) res.characterEncoding = "UTF-8";
             res.writer.print(body)
+            res.outputStream
+        } else {
+            //TODO：增加更多 body 类型支持
+            //TODO: 增加自定义类型支持
+            throw IllegalArgumentException("不支持的 body 类型:" + body.javaClass.name)
         }
     }
 }

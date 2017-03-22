@@ -36,7 +36,7 @@ class Response(private val ctx: Context) {
     /**
      * 响应体
      */
-    var body: String? = null
+    var body: Any? = null
 
     /**
      * 添加 vary 头
@@ -97,6 +97,10 @@ class Response(private val ctx: Context) {
                 this["Etag"] = value
             }
         }
+
+    var character: String?
+        get() = res.characterEncoding
+        set(value) { res.characterEncoding = value }
 
     /**
      * 获取头
