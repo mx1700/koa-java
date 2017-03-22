@@ -1,6 +1,7 @@
 package me.mx1700.koalin
 
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 import java.lang.Exception
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -67,7 +68,7 @@ class Server(
      */
     private fun callback(request: HttpServletRequest,
                          response: HttpServletResponse) {
-        logger.info("run middleware list")
+        response.characterEncoding = "UTF-8"
         val ctx = Context(this, request, response)
         next(0, ctx)
         respond(ctx)
@@ -108,15 +109,19 @@ class Server(
     private fun respond(ctx: Context) {
         val res = ctx.response.raw
         val body = ctx.response.body ?: return
-
-        if (body is String) {
-            if (res.characterEncoding == null) res.characterEncoding = "UTF-8";
-            res.writer.print(body)
-            res.outputStream
-        } else {
-            //TODO：增加更多 body 类型支持
-            //TODO: 增加自定义类型支持
-            throw IllegalArgumentException("不支持的 body 类型:" + body.javaClass.name)
+        when(body) {
+            is CharSequence -> res.writer.print(body)
+            is ByteArray -> res.outputStream.write(body)
+            is InputStream -> {
+                val b = ByteArray(512)
+                while (true) {
+                    val n = body.read(b)
+                    if (n == -1) break
+                    res.outputStream.write(b, 0, n)
+                }
+                body.close()
+            }
+            else -> throw IllegalArgumentException("不支持的 body 类型: " + body.javaClass.name)
         }
     }
 }
