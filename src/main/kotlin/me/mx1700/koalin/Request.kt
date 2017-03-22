@@ -168,7 +168,6 @@ class Request(private val ctx: Context) {
 
     /**
      * 协议
-     * TODO:支持 X-Forwarded-Proto
      */
     val protocol: String by lazy {
         when {
