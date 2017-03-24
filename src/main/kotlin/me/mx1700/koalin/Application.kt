@@ -64,14 +64,36 @@ class Server(
     }
 
     /**
+     * 使用并配置中间件
+     */
+    fun <T : Middleware> use(middlewareAction: () -> T, config: T.() -> Unit = {}) {
+        val middleware = middlewareAction()
+        config(middleware)
+        middlewareList.add(middleware)
+    }
+
+    /**
      * 开始执行中间件
      */
     private fun callback(request: HttpServletRequest,
                          response: HttpServletResponse) {
         response.characterEncoding = "UTF-8"
         val ctx = Context(this, request, response)
-        next(0, ctx)
-        respond(ctx)
+        try {
+            next(0, ctx)
+            respond(ctx)
+        } catch (err: Exception) {
+            val body = ctx.response.body
+            if (body is InputStream) {
+                //保证结束访问时流关闭
+                body.use {  }
+            }
+            if (onExceptionAction != null) {
+                onExceptionAction?.invoke(ctx, err)
+            } else {
+                throw err
+            }
+        }
     }
 
     /**
@@ -82,18 +104,10 @@ class Server(
             return
         }
         val middleware = middlewareList[index]
-        try {
-            ctx.next = {
-                next(index + 1, ctx)
-            }
-            middleware(ctx)
-        } catch (err: Exception) {
-            if (onExceptionAction != null) {
-                onExceptionAction?.invoke(ctx, err)
-            } else {
-                throw err
-            }
+        ctx.next = {
+            next(index + 1, ctx)
         }
+        middleware(ctx)
     }
 
     /**
